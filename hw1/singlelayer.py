@@ -26,7 +26,7 @@ class singleLayer :
         y_predict = expX / np.sum(expX)
         return y_predict
 
-    def LossFunction(self, y_predict, Y): #  Loss Function을 구하십시오 -> 직접 작성
+    def LossFunction(self, y_predict, Y): # Loss Function을 구하십시오 -> 직접 작성
         #3.3
 
         return loss
@@ -74,7 +74,7 @@ class singleLayer :
             #함수 작성
             if i % 10 == 0:
 
-                #3.6 Accuracy 함수 사용
+                # 3.6 Accuracy 함수 사용
                 print(i, "번째 트레이닝")
                 print('현재 Loss(Cost)의 값 : ', loss)
                 print("Train Set의 Accuracy의 값 : ", )
