@@ -29,30 +29,31 @@ class singleLayer:
         if ScoreMatrix.ndim == 2:
             temp = ScoreMatrix.T
             temp = temp - np.max(temp, axis=0)  # 가장 점수가 높은 인덱스의 값을 0으로 만들기 위해 np.max(temp,axis=0)을 뺌
-            y_predict = np.exp(temp) / np.sum(np.exp(temp), axis=0)  # 값이 0이면 exp 연산했을 때 결과가 1임
+            y_predict = np.exp(temp) / np.sum(np.exp(temp), axis=0)
             return y_predict.T
         temp = ScoreMatrix - np.max(ScoreMatrix, axis=0)
         expX = np.exp(temp)
         y_predict = expX / np.sum(expX)
-        return y_predict
+        return y_predict # 사진마다의 y_predict의 모든 데이터의 합은 1임
 
     def LossFunction(self, y_predict, Y):  # Loss Function을 구하십시오 -> 직접 작성
         # 3.3
-        """ 얘 수정!!!!!!!!!!!!!!!!!!!!!!
-        :param y_predict: Softmax 함수를 이용해서 얻은 결과값임.
+        """
+        :param y_predict: Softmax 함수를 이용해서 얻은 결과값임. 즉, 가장 큰 값을 가진 인덱스가 정답일것이라고 추측한 것임
         :param Y: 해당 사진 데이터의 정답 레이블임.
-        :return: 예를 들어 사진의 정답값이 3인데 y_predict에서 가장 큰 값이 1이었을 경우, 이 정답을 얼마나 제대로 맞추지 못했는지를 알려주는 척도임
+        :return: 사진의 정답값과 y_predict에서 가장 큰 값이 있는 인덱스가 틀릴 경우, 이 정답을 얼마나 제대로 맞추지 못했는지를 알려주는 척도임
         즉, 리턴값인 loss가 작을 수록 잘 추측한 것임
         """
-
-        if Y.ndim == 2: # 사진 여러 장일 경우, Y.shape는 [사진 개수, 10]임. 각 사진별로 정답값을 tmp에 저장함
-            tmp = np.argmax(Y, axis=1)
-            loss = np.zeros([tmp.size])
-            for i in range(tmp.size):
-                loss[i] = -1 * np.log10(y_predict[i][tmp[i]])  # 강의 때 배운 loss 계산식임
-        else: # 사진 한 장일 경우 Y.shape는 [10, ]임
-            tmp = np.argmax(Y)
-            loss = -1 * np.log10(y_predict[0][tmp])
+        # Y는 (개수, 10) 혹은(10, )이고 y_predict도 ㅇㅇ
+        epsilon = 1e-7
+        y_predict += epsilon
+        # y_predict 내 어떤 값이 너무 작은 값일 경우에(0에 수렴하는 값) log 연산을 하면
+        # 'RuntimeWarning: divide by zero encountered in log' 라는 경고가 생기기 때문에 이를 방지하기 위해 아주 작은 수를 더해주었음
+        if Y.ndim == 2:
+            loss_arr = -1 * np.sum(Y * np.log(y_predict), axis=1)
+            loss = np.average(loss_arr)
+        else:
+            loss = -1 * np.sum(Y * np.log(y_predict))
 
         return loss
 
@@ -89,11 +90,12 @@ class singleLayer:
         analytic gradient 방법에 입각해 dL/dw, dL/db를 계산하는 함수
         이 리턴값들은 이후에 loss값이 작아지도록 Weight값을 수정할 때 필요함
         """
-        if X.ndim == 1:  # 한개의 사진을 대상으로 계산할 경우, 배열이 [784,]의 형태이므로 [1, 784]로 바꾸어 계산할 수 있도록 함
-            X = X.reshape(1, X.size)
         delta_score = self.delta_Loss_Scorefunction(y_predict, Y)
-        delta_W = delta_score * self.delta_Score_weight(delta_score, X)
-        delta_B = delta_score * self.delta_Score_bias(delta_score, X)
+        if X.ndim == 1:  # 한개의 사진을 대상으로 계산할 경우, 배열이 [784,]의 형태이므로 [1, 784]로 바꾸어 계산할 수 있도록 함
+            X = X.reshape(1, 784)
+        #delta_W = self.delta_Score_weight(delta_score.reshape([X.shape[0], 10]), X) * delta_score # dot 연산이 가능하도록 delta_score.reshape([X.shape[0], 10])를 전달
+        delta_B = self.delta_Score_bias(delta_score, X) * delta_score
+        delta_W = self.delta_Score_weight(delta_score.reshape([X.shape[0], 10]), X)
 
         return delta_W, delta_B
 
@@ -113,13 +115,15 @@ class singleLayer:
             # 3.6
             y_predict, loss = self.Forward(X_train[i], Y_train[i])
             del_w, del_b = self.BackPropagation(X_train[i], y_predict, Y_train[i])
-            self.SetParams(self.W + (-learning_rate * del_w), self.B + (-learning_rate * del_b))
+            self.W += -learning_rate * del_w
+            self.B += -learning_rate * del_b
+            # self.SetParams(self.W + (-learning_rate * del_w), self.B + (-learning_rate * del_b))
 
             # 함수 작성
             if i % 10 == 0:
                 # 3.6 Accuracy 함수 사용
-                train_accuracy = self.Accuracy(X_train[i], Y_train[i])
-                test_accuracy = self.Accuracy(X_test[i], Y_test[i])
+                train_accuracy = self.Accuracy(X_train, Y_train)
+                test_accuracy = self.Accuracy(X_test, Y_test)
                 print(i, "번째 트레이닝")
                 print('현재 Loss(Cost)의 값 : ', loss)
                 print("Train Set의 Accuracy의 값 : ", train_accuracy)

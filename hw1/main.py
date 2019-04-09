@@ -49,10 +49,8 @@ x_train, y_train, x_test, y_test = get_data()
 
 # W값과 Bias 값을 np.random.random 함수를 사용해 알맞게 넣어주십시오.(이 것만 빈칸 나머지는 제공)
 # 3.1
-#W = np.random.random((10,784))
-#Bias = np.random.random((10,))
-W = np.random.random((784,10))
-Bias = np.random.random((1,10))
+W = np.random.random((784, 10))
+Bias = np.random.random(10)
 
 #i = input() # 자신이 원하는 숫자 넣기 가능
 i = 5
@@ -73,11 +71,9 @@ if Trainend !=False:
          print("S : {}".format(s))
          check = x_train[s]
          img_show(check)
-         Hypothesis = TrainNN.Forward(check)
+         Hypothesis, l = TrainNN.Forward(check, y_train[s])
          print("이 이미지의 추론 값 : {}".format(np.argmax(Hypothesis)))
    else:
       print("iterator로 숫자를 안넣었습니다. 종료합니다.")
 
 '''
-
-
