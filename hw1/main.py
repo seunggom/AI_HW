@@ -1,4 +1,4 @@
-import numpy as np
+﻿import numpy as np
 from mnist import load_mnist
 import singlelayer as sn # SingleayerNetwork
 from PIL import Image
@@ -71,7 +71,7 @@ if Trainend !=False:
          print("S : {}".format(s))
          check = x_train[s]
          img_show(check)
-         Hypothesis, l = TrainNN.Forward(check, y_train[s])
+         Hypothesis, l = TrainNN.Forward(check, y_train)
          print("이 이미지의 추론 값 : {}".format(np.argmax(Hypothesis)))
    else:
       print("iterator로 숫자를 안넣었습니다. 종료합니다.")
