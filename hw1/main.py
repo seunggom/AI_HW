@@ -1,4 +1,3 @@
-# B635076 김승연
 import numpy as np
 from mnist import load_mnist
 import singlelayer as sn # SingleayerNetwork
