@@ -1,4 +1,3 @@
-# B635076 김승연
 import numpy as np
 from mnist import load_mnist
 import singlelayer as sn # SingleayerNetwork
@@ -76,5 +75,4 @@ if Trainend !=False:
          print("이 이미지의 추론 값 : {}".format(np.argmax(Hypothesis)))
    else:
       print("iterator로 숫자를 안넣었습니다. 종료합니다.")
-
 '''
