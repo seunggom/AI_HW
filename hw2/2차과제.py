@@ -148,7 +148,7 @@ class linearLayer:
 
 class SiLU:
     '''
-    SiLU란 A = z ∗ sigmoid(z)로 나타나는 그래프이다.
+    SiLU란 f(z) = z ∗ sigmoid(z)로 나타나는 그래프이다.
     forward함수에서는, z라는 입력이 들어오면 SiLU를 activation function으로 하여 activate한 후 그 결과를 self.Z에 저장한다.
     backward함수에서는, 저장한 Z값으로 SiLU의 미분값을 구한 후 앞의 레이어에서 backward로 들어온 dActivation 값을 곱한 값 dZ를 출력한다.
     '''
@@ -159,7 +159,8 @@ class SiLU:
     
     def forward(self, Z):
         #수식에 따른 forward 함수 작성
-        Activation = Z * (1 / (1 + np.exp(-Z)))
+        sig = 1 / (1 + np.exp(-Z))
+        Activation = Z * sig
         self.Z = Z
 
         return Activation
@@ -168,16 +169,15 @@ class SiLU:
     def backward(self, dActivation):
         '''
         연산 과정을 도식화하면 아래와 같다.
-          Z                         sig(Z)          Activation
-        ----------> (Sigmoid) ------------> (*) ----------------> 
-          dZ                         ds      ↑    dActivation
-                                             │ 
-                                 Z ----------┘
-        이 때 ds = dActivation * Z 이고, dZ = ds * (sig(Z)*(1-sig(Z))) 이다.
+          Z                    Activation
+        ----------> (SiLU) ---------------->
+          dZ                 dActivation
+
+        f'(z) = f(z) + sigmoid(z)(1-f(z)) 이다.
         '''
         sig = 1 / (1 + np.exp(-self.Z))
-        ds = self.Z * dActivation
-        dZ = ds * (sig * (1 - sig))
+        fz = self.forward(self.Z)
+        dZ = (sig * (1 - fz) + fz) * dActivation
         
         return dZ
 
@@ -427,7 +427,7 @@ TNN_dropOut = copy.deepcopy(TNN_minibatchOptimizer)
 
 #채점은 이 것의 결과값으로 할 예정입니다. 
 
-trained_batch, tb_train_acc_list, tb_test_acc_list, tb_loss_list = batchOptimization(dataset, TNN_batchOptimizer, 0.1, 500)
-#trained_minibatch, tmb_train_acc_list, tmb_test_acc_list, tb_loss_list = minibatch_Optimization(dataset, TNN_minibatchOptimizer, 0.01, epoch=100, batch_size=1000)
+#trained_batch, tb_train_acc_list, tb_test_acc_list, tb_loss_list = batchOptimization(dataset, TNN_batchOptimizer, 0.1, 500)
+trained_minibatch, tmb_train_acc_list, tmb_test_acc_list, tb_loss_list = minibatch_Optimization(dataset, TNN_minibatchOptimizer, 0.01, epoch=100, batch_size=1000)
 #trained_dropout, td_train_acc_list, td_test_acc_list, td_loss_list = dropout_use_Optimizer(dataset, TNN_dropOut, 0.1, 1000, 0.25, 0.15)
 
