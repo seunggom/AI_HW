@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
+#!pip install cifar10_web # 리눅스 환경에선 이 부분을 지우시고 pip install cifar10_web 으로 직접 인스톨 해주세요.
 import numpy as np
 from collections import OrderedDict
 import cifar10_web
@@ -11,13 +12,13 @@ import cifar10_web
 import pickle
 
 
-# In[2]:
+# In[ ]:
 
 
-train_images, train_labels, test_images, test_labels = cifar10_web.cifar10(path=None)
+# train_images, train_labels, test_images, test_labels = cifar10_web.cifar10(path=None)
 
 
-# In[3]:
+# In[ ]:
 
 
 def im2col(input_data, filter_h, filter_w, stride=1, pad=0):
@@ -52,7 +53,7 @@ def im2col(input_data, filter_h, filter_w, stride=1, pad=0):
     return col
 
 
-# In[4]:
+# In[ ]:
 
 
 def load_params(ShallowCNN, file_name="params3rd.pkl"):
@@ -68,7 +69,7 @@ def load_params(ShallowCNN, file_name="params3rd.pkl"):
   
 
 
-# In[5]:
+# In[ ]:
 
 
 def col2im(col, input_shape, filter_h, filter_w, stride=1, pad=0):
@@ -102,7 +103,7 @@ def col2im(col, input_shape, filter_h, filter_w, stride=1, pad=0):
     return img[:, :, pad:H + pad, pad:W + pad]
 
 
-# In[6]:
+# In[ ]:
 
 
 class LinearLayer:
@@ -132,7 +133,7 @@ class LinearLayer:
         return dx
 
 
-# In[7]:
+# In[ ]:
 
 
 class Convolution:
@@ -166,8 +167,8 @@ class Convolution:
         '''
         (N, C, H, W) = x.shape
         
-        out_h = int(1+ (H + 2*self.pad - FH) / self.stride)
-        out_W = int(1+ (W + 2*self.pad - FW) / self.stride)
+        out_h = int(1+ (H+2*self.pad - FH) / self.stride)
+        out_W = int(1+ (W+2*self.pad - FW) / self.stride)
         
         ''' 
         데이터를 2차원으로 바꾸어서 np.dot 연산으로 한 번에 연산을 가능하게 함
@@ -205,7 +206,7 @@ class Convolution:
         
 
 
-# In[8]:
+# In[ ]:
 
 
 #Convolution Layer 사용 예시
@@ -215,7 +216,7 @@ b = np.random.randn(2, 1, 1, 1)
 con1 = Convolution(W, b, stride=1, pad=1)
 
 
-# In[9]:
+# In[ ]:
 
 
 class Pooling:
@@ -260,7 +261,7 @@ class Pooling:
         return dx
 
 
-# In[10]:
+# In[ ]:
 
 
 class ReLU:
@@ -284,7 +285,7 @@ class ReLU:
     
 
 
-# In[11]:
+# In[ ]:
 
 
 def softmax(x):
@@ -298,7 +299,7 @@ def softmax(x):
     return np.exp(x) / np.sum(np.exp(x))
 
 
-# In[12]:
+# In[ ]:
 
 
 class SoftmaxWithLoss:
@@ -326,18 +327,18 @@ class SoftmaxWithLoss:
         return dx
 
 
-# In[13]:
+# In[ ]:
 
 
 def filterParamSet(filter_num , filter_size, filter_channel, prev_filter_num=1):
     #그 필터에 해당하는 Weight와 bias 생성 간단하게 0.01로 초기화
-    filterWeight =0*np.random.randn(filter_num, filter_channel, filter_size, filter_size) * np.sqrt(2/(filter_size*filter_size*filter_num))
+    filterWeight = np.random.randn(filter_num, filter_channel, filter_size, filter_size) * np.sqrt(2/(filter_size*filter_size*filter_num))
     filterbias = np.zeros(filter_num)
     
     return filterWeight, filterbias 
 
 
-# In[14]:
+# In[ ]:
 
 
 def fullLayerParamSet(input_n, output_n):
@@ -347,7 +348,7 @@ def fullLayerParamSet(input_n, output_n):
     return full_W, full_b
 
 
-# In[15]:
+# In[ ]:
 
 
 def Convolution_Layers_set(ConvLayerlist):
@@ -371,33 +372,7 @@ def Convolution_Layers_set(ConvLayerlist):
     return Convolution_Layers
 
 
-# In[16]:
-
-
-"""
-layer 1은 Convolution으로 filter의 개수는 20개 filter의 크기는 5(5*5), filter의 channel은 3 stride =2 pad =2
-layer 2은 Convolution으로 filter의 개수는 20개 filter의 크기는 3(3*3), filter의 channel은 20 stride =1 pad =1
-layer 3은 Polling으로 filter의 size는 2 filter의 stride=2 filter의 pad=0
-layer 4는 Convolution으로 filter의 개수는 20개 filter의 크기는 1(1*1), filter의 channel은 20 stride =1 pad =0
-layer 5는 Polling으로 filter의 size는 2 filter의 stride=2 filter의 pad=0
-
-참고로 filter의 channel 사이즈는 input의 channel 사이즈와 같아야한다.
-인풋의 크기가 32x32x32이면,
-layer를 거칠때마다 16x16x20 -> 16x16x20 ->8x8x20 -> 8x8x20 -> 4x4x20 의 크기를 가진다.
-
-이 5개로 Convolution_Layers 를 만든다.
-"""
-layerlist = [['C', 20, 5, 3, 2, 2], ['C', 20, 3, 20, 1, 1], ['P', 2, 2, 0], ['C', 20, 1, 20, 1, 0], ['P', 2, 2, 0]]
-
-conv_layer_dim = Convolution_Layers_set(layerlist)
-conv_layer_dim
-
-
-# OrderedDict([('C1', <__main__.Convolution at 0x2935be7a828>),
-#              ('C2', <__main__.Convolution at 0x2935be7a710>),
-#              ('P3', <__main__.Pooling at 0x2935be7a7b8>)])
-
-# In[17]:
+# In[ ]:
 
 
 def FullyConnected_Layers_set(FullyConnectedLayerlist):
@@ -410,27 +385,10 @@ def FullyConnected_Layers_set(FullyConnectedLayerlist):
     return FullyConnected_layers
 
 
-# In[18]:
+# In[ ]:
 
 
-"""
-FC_layers에 처음 들어오는 인풋의 크기가 4x4x20이므로,
-처음 weight 크기는 (320,50)일 것이다.
-그리고 cifar10에서 10개의 레이블이 있으므로 최종 아웃풋은 (10, )의 형태가 되어야 할 것이다.
-"""
-layerlist2 = [[320, 50], [50, 10]]
-
-full_layer_dim = FullyConnected_Layers_set(layerlist2)
-full_layer_dim
-
-
-# OrderedDict([('F1', <__main__.LinearLayer at 0x2935be7aba8>),
-#              ('F2', <__main__.LinearLayer at 0x2935be7a1d0>)])
-
-# In[19]:
-
-
-class ShallowCNN:
+class VGGNet:
     
     def __init__(self, ConvLayerlist, FullLayerlist):
         np.random.seed(1)
@@ -455,11 +413,19 @@ class ShallowCNN:
             self.layers['F'+str(self.i)] = layer
             self.layers['R'+str(self.i)] = ReLU()
             
+        """
+        이 부분을 수정해야 할 것
+        """
         
-        last_f_w, last_f_b = np.random.randn(10, 10)*0.01, np.zeros([1,10])
+        '''
+        바로 이전 fully-connected layer의 크기는 (4096, )이고, cifar10의 레이어 개수는 10개이므로,
+        마지막 fully-connected layer 계산에 필요한 weight 크기는 (4096, 10)이어야 한다.
+        '''
+        last_f_w, last_f_b = np.random.randn(4096, 10)*0.01, np.zeros([1,10])
         self.i = self.i+1
         self.layers['F'+str(self.i)] = LinearLayer(last_f_w, last_f_b)
         self.lastlayer = SoftmaxWithLoss()
+        
         
     #Score를 구하는 함수    
     def Score(self, x):
@@ -476,53 +442,8 @@ class ShallowCNN:
         return loss
     
         
-    """
-    구현하세요
-    backpropagation에서 각 Convolution과 LinearLayer의 W를  업데이트 해주셔야 합니다.
-    """
-    def backpropagation(self, learning_rate):
-        d = self.lastlayer.backward()
-        
-        reverseLayers = list(self.layers.values())
-        reverseLayers.reverse()
-        # 과제2땐 이런 좋은 기능이 있는지 모르고 하나하나 작성했는데,
-        # 과제3땐 함수를 이용해 거꾸로 레이어 순서를 뒤집어서 backward를 for문을 이용해 진행
+    #구현하세요.
 
-        for l in reverseLayers:
-            d = l.backward(d)
-
-        # 각 레이어에 대한 gradient 값들을 grads에 저장한다.
-        grads = {}
-        grads['W1'] = self.layers['C1'].dW
-        grads['b1'] = self.layers['C1'].db
-        grads['W2'] = self.layers['C2'].dW
-        grads['b2'] = self.layers['C2'].db
-        grads['W3'] = self.layers['C4'].dW
-        grads['b3'] = self.layers['C4'].db
-        grads['W4'] = self.layers['F6'].dW
-        grads['b4'] = self.layers['F6'].db
-        grads['W5'] = self.layers['F7'].dW
-        grads['b5'] = self.layers['F7'].db
-        grads['W6'] = self.layers['F8'].dW
-        grads['b6'] = self.layers['F8'].db
-
-        
-        # 각각의 레이어에 weight와 bias 값을 업데이트 해준다.
-        self.layers['C1'].W -= learning_rate * grads['W1']
-        self.layers['C2'].W -= learning_rate * grads['W2']
-        self.layers['C4'].W -= learning_rate * grads['W3']
-        self.layers['F6'].W -= learning_rate * grads['W4']
-        self.layers['F7'].W -= learning_rate * grads['W5']
-        self.layers['F8'].W -= learning_rate * grads['W6']
-
-        self.layers['C1'].b -= learning_rate * grads['b1']
-        self.layers['C2'].b -= learning_rate * grads['b2']
-        self.layers['C4'].b -= learning_rate * grads['b3']
-        self.layers['F6'].b -= learning_rate * grads['b4']
-        self.layers['F7'].b -= learning_rate * grads['b5']
-        self.layers['F8'].b -= learning_rate * grads['b6']
-     
-        return grads
         
 
     def accuracy(self, x, t, batch_size=100):
@@ -538,33 +459,170 @@ class ShallowCNN:
             acc += np.sum(y == tt) 
         
         return acc / x.shape[0]
+      
+      
 
 
-# 리스트에 들어갈 값들은 위에서 작성하였음.
-ConvLayerlist = layerlist
-FullLayerlist = layerlist2 
-
-SCNN = ShallowCNN(ConvLayerlist, FullLayerlist)
-
-load_params(SCNN)
+# In[ ]:
 
 
+class VGGNet16:
+    
+    def __init__(self, ConvLayerlist, FullLayerlist):
+        np.random.seed(1)
+        self.Convolution_Layers = Convolution_Layers_set(ConvLayerlist)
+        self.FC_Layers = FullyConnected_Layers_set(FullLayerlist)
+        
+        self.layers = OrderedDict()
+        self.i = 0
+        
+        for layer in self.Convolution_Layers.values():
+            self.i = self.i+1
+            if(type(layer) ==Convolution):
+                self.layers['C'+str(self.i)] = layer
+                self.layers['R'+str(self.i)] = ReLU()
+            elif(type(layer)==Pooling):
+                self.layers['P'+str(self.i)] = layer
+            else:
+                print("이상한게 들어왔네요")
+            
+        for layer in self.FC_Layers.values():
+            self.i = self.i+1
+            self.layers['F'+str(self.i)] = layer
+            self.layers['R'+str(self.i)] = ReLU()
+            
+        """
+        이 부분 또한 수정해야 할 것
+        """
+        
+        '''
+        바로 이전 fully-connected layer의 크기는 (4096, )이고, cifar10의 레이어 개수는 10개이므로,
+        마지막 fully-connected layer 계산에 필요한 weight 크기는 (4096, 10)이어야 한다.
+        '''
+        last_f_w, last_f_b = np.random.randn(4096, 10)*0.01, np.zeros([1,10])
+        self.i = self.i+1
+        self.layers['F'+str(self.i)] = LinearLayer(last_f_w, last_f_b)
+        self.lastlayer = SoftmaxWithLoss()
+        
+        
+    #Score를 구하는 함수    
+    def Score(self, x):
+        self.x = x
+        for layer in self.layers.values():
+            x = layer.forward(x)
+            
+        return x
+    
+    #Loss를 구하는 함수
+    def forward(self, x, t):
+        y = self.Score(x)
+        loss = self.lastlayer.forward(y, t)
+        return loss
+    
+        
 
-train_input_x=train_images.reshape(50000, 3 ,32, 32)
+    def accuracy(self, x, t, batch_size=100):
+        if t.ndim != 1 : t = np.argmax(t, axis=1)
+        
+        acc = 0.0
+        
+        for i in range(int(x.shape[0] / batch_size)):
+            tx = x[i*batch_size:(i+1)*batch_size]
+            tt = t[i*batch_size:(i+1)*batch_size]
+            y = self.Score(tx)
+            y = np.argmax(y, axis=1)
+            acc += np.sum(y == tt) 
+        
+        return acc / x.shape[0]
+      
+      
 
-minibatch_data = train_input_x[:5000, :, :, :]
-minibatch_label = train_labels[:5000, :]
+
+# In[ ]:
 
 
+"""
+VGG는 항상 3x3 크기의 필터에 stride=1, pad=1를 사용한다.
+인풋 데이터의 크기가 32x32x3일 때 VGG11의 convolution 결과를 나열하면,
 
-test2_images =test_images.reshape(-1, 3, 32, 32)
-SCNN.accuracy(test2_images, test_labels)
+32x32x64 -> 16x16x64
+-> 16x16x128 -> 8x8x128
+-> 8x8x256 -> 8x8x256 ->4x4x256
+-> 4x4x512 -> 4x4x512 -> 2x2x512
+-> 2x2x512 -> 2x2x512 -> 1x1x512 이다.
+
+fully connected layer 경우에는 FC-4096, FC-4096에 의해
+(512, 4096), (4096,4096)의 weight 크기가 필요하다.
+"""
+
+VGG11ConvLayerlist = [['C', 64, 3, 3, 1, 1], ['P', 2, 2, 0],
+                      ['C', 128, 3, 64, 1, 1], ['P', 2, 2, 0],
+                      ['C', 256, 3, 128, 1, 1], ['C', 256, 3, 256, 1, 1], ['P', 2, 2, 0],
+                      ['C', 512, 3, 256, 1, 1], ['C', 512, 3, 512, 1, 1], ['P', 2, 2, 0],
+                      ['C', 512, 3, 512, 1, 1], ['C', 512, 3, 512, 1, 1], ['P', 2, 2, 0]]
+VGG11FullLayerlist = [[1*1*512, 4096], [4096, 4096]]
+
+VGGNet11 = VGGNet(VGG11ConvLayerlist, VGG11FullLayerlist)
 
 
-for i in range(5):
-    loss = SCNN.forward(train_input_x[i*100:(i+1)*100], train_labels[i*100:(i+1)*100])
-    grads = SCNN.backpropagation(0.1)
-    print(i,"번의 Test Accuracy :", SCNN.accuracy(test2_images, test_labels))
+# In[ ]:
+
+
+"""
+VGG16의 경우에는 1x1 filter를 쓰는 쓰는 단계가 있고, 그 외 맥락은 위와 비슷하다.
+VGG16의 convolution 결과를 나열하면,
+
+32x32x64 -> 32x32x64 -> 16x16x64
+-> 16x16x128 -> 16x16x128 -> 8x8x128
+-> 8x8x256 -> 8x8x256 -> 10x10x256 -> 5x5x256
+-> 5x5x512 -> 5x5x512 -> 7x7x512 -> 3x3x512
+-> 3x3x512 -> 3x3x512 -> 5x5x512 -> 2x2x512 이다.
+
+그래서 fully connected layer 경우에는 FC-4096, FC-4096에 의해
+(2x2x512, 4096), (4096,4096)의 weight 크기가 필요하다.
+
+"""
+
+VGG16ConvLayerlist = [['C', 64, 3, 3, 1, 1], ['C', 64, 3, 64, 1, 1], ['P', 2, 2, 0],
+                      ['C', 128, 3, 64, 1, 1], ['C', 128, 3, 128, 1, 1], ['P', 2, 2, 0],
+                      ['C', 256, 3, 128, 1, 1], ['C', 256, 3, 256, 1, 1],['C', 256, 1, 256, 1, 1], ['P', 2, 2, 0],
+                      ['C', 512, 3, 256, 1, 1], ['C', 512, 3, 512, 1, 1],['C', 512, 1, 512, 1, 1], ['P', 2, 2, 0],
+                      ['C', 512, 3, 512, 1, 1], ['C', 512, 3, 512, 1, 1],['C', 512, 1, 512, 1, 1], ['P', 2, 2, 0]]
+VGG16FullLayerlist = [[2*2*512, 4096], [4096, 4096]]
+
+VGGNet16 = VGGNet16(VGG16ConvLayerlist, VGG16FullLayerlist)
+
+
+# In[ ]:
+
+
+print("VGG11에 대한 내용")
+print("전체적인 Layer", VGGNet11.layers.keys())
+print("---------------------------------------------------------")
+for key, layer in VGGNet11.layers.items():
+    
+    if type(layer) == Convolution:
+        print("이 레이어는 ", key, "이고, W의 Shape는 ", layer.W.shape, "이다")
+    elif type(layer) == LinearLayer:
+        print("이 레이어는 ",key, "이고, W의 Shape는 ", layer.W.shape, "이다")
+
+
+# In[ ]:
+
+
+print("VGG16에 대한 내용")
+print("전체적인 Layer", VGGNet16.layers.keys())
+print("---------------------------------------------------------")
+for key, layer in VGGNet16.layers.items():
+    
+    if type(layer) == Convolution:
+        print("이 레이어는 ", key, "이고, W의 Shape는 ", layer.W.shape, "이다")
+    elif type(layer) == LinearLayer:
+        print("이 레이어는 ",key, "이고, W의 Shape는 ", layer.W.shape, "이다")
+
+
+# In[ ]:
+
 
 
 
